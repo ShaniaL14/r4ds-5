@@ -1,11 +1,11 @@
----
-title: "Wildfires and Movies"
-author: "GitHub Copilot"
-execute:
-  echo: false
----
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
+#
 #| message: false
 
 library(tidyverse)
@@ -14,39 +14,39 @@ library(leaflet)
 library(rvest)
 library(httr2)
 library(jsonlite)
-```
-
-```{r}
+#
+#
+#
 raw <- read_json("data/wildfires.geojson")
 print(length(raw$features))
-```
-
-```{r}
+#
+#
+#
 fire1 <- raw$features[[1]]
 names(fire1)
-```
-
-```{r}
+#
+#
+#
 first_pair <- fire1$geometry$coordinates[[1]][[1]]
 first_pair
-```
-
-```{r}
+#
+#
+#
 features <- tibble(features = raw$features)
 print(features)
-```
-
-```{r}
+#
+#
+#
 features <- features |> unnest_wider(features)
 print(features)
-```
-
-```{r}
+#
+#
+#
 features <- features |> unnest_wider(properties)
 print(features)
-```
-
-```{r}
+#
+#
+#
 #| cache: true
 
 fires <- features |>
@@ -56,9 +56,9 @@ fires <- features |>
     gis_acres = as.numeric(gis_acres),
     fire_year = as.integer(fire_year)
   )
-```
-
-```{r}
+#
+#
+#
 fires |>
   group_by(state) |>
   summarise(total_acres = sum(gis_acres, na.rm = TRUE)) |>
@@ -73,9 +73,9 @@ fires |>
     y = "Total acres burned",
     caption = "Source: wildfire records in fires."
   )
-```
-
-```{r}
+#
+#
+#
 big_fires <- fires |>
   filter(gis_acres >= 100000) |>
   mutate(
@@ -88,9 +88,9 @@ big_fires <- fires |>
       \(coordinates) mean(map_dbl(purrr::flatten(coordinates), \(pair) pair[[2]]))
     )
   )
-```
-
-```{r}
+#
+#
+#
 big_fires |>
   count(agency) |>
   ggplot(aes(x = agency, y = n)) +
@@ -100,9 +100,9 @@ big_fires |>
     x = "Managing agency",
     y = "Number of fires"
   )
-```
-
-```{r}
+#
+#
+#
 top_fires <- big_fires |>
   arrange(desc(gis_acres)) |>
   slice_head(n = 10) |>
@@ -141,17 +141,17 @@ leaflet(top_fires_sf) |>
     lng2 = max(unlist(top_fires$polygon_lng)),
     lat2 = max(unlist(top_fires$polygon_lat))
   )
-```
-
-```{r}
+#
+#
+#
 imdb_snapshots <- readRDS("data/imdb_snapshots.rds")
 print(imdb_snapshots)
 
 imdb_snapshots |>
   count(snap_year)
-```
-
-```{r}
+#
+#
+#
 rank_changes <- imdb_snapshots |>
   filter(snap_year %in% c(2015, 2022)) |>
   select(title, year, snap_year, rank) |>
@@ -159,16 +159,16 @@ rank_changes <- imdb_snapshots |>
   drop_na(rank_2015, rank_2022) |>
   mutate(
     release_decade = floor(year / 10) * 10,
-    rank_change = rank_2022 - rank_2015
+    rank_change = abs(rank_2022 - rank_2015)
   )
 
 rank_changes |>
   group_by(release_decade) |>
   summarise(avg_rank_change = mean(rank_change), .groups = "drop") |>
   arrange(release_decade)
-```
-
-```{r}
+#
+#
+#
 imdb_snapshots |>
   filter(title %in% c(
     "The Dark Knight",
@@ -182,9 +182,9 @@ imdb_snapshots |>
   select(title, snap_year, rank) |>
   pivot_wider(names_from = snap_year, values_from = rank, names_prefix = "rank_") |>
   arrange(title)
-```
-
-```{r}
+#
+#
+#
 imdb_snapshots |>
   filter(title == "Interstellar") |>
   ggplot(aes(x = factor(snap_year), y = rank)) +
@@ -194,28 +194,9 @@ imdb_snapshots |>
     x = "Snapshot year",
     y = "Rank"
   )
-```
-
-```{r}
-rank_changes |>
-  group_by(release_decade) |>
-  summarise(avg_rank_change = mean(rank_change), .groups = "drop") |>
-  mutate(direction = if_else(avg_rank_change >= 0, "Rank rose", "Rank fell")) |>
-  ggplot(aes(y = factor(release_decade), x = avg_rank_change, fill = direction)) +
-  geom_col() +
-  geom_vline(xintercept = 0) +
-  scale_fill_manual(values = c("Rank rose" = "#C65D3B", "Rank fell" = "#2E6F95")) +
-  labs(
-    title = "Average IMDb Rank Change by Release Decade",
-    subtitle = "Positive values indicate a higher rank number in 2022",
-    x = "Average rank change (2022 rank - 2015 rank)",
-    y = "Release decade",
-    fill = "Direction",
-    caption = "Sample: 190 films appearing in both the 2015 and 2022 snapshots."
-  )
-```
-
-```{r}
+#
+#
+#
 film_snapshot_counts <- imdb_snapshots |>
   count(title, name = "n_snapshots")
 
@@ -228,49 +209,8 @@ film_snapshot_counts |>
     x = "Number of snapshots",
     y = "Number of films"
   )
-```
-
-```{r}
-#| cache: true
-
-urls <- c(
-  "https://web.archive.org/web/20150101/https://www.imdb.com/chart/top/",
-  "https://web.archive.org/web/20170101/https://www.imdb.com/chart/top/",
-  "https://web.archive.org/web/20190101/https://www.imdb.com/chart/top/",
-  "https://web.archive.org/web/20210101/https://www.imdb.com/chart/top/",
-  "https://web.archive.org/web/20220201012049/https://www.imdb.com/chart/top/"
-)
-years <- c(2015, 2017, 2019, 2021, 2022)
-
-scrape_imdb <- \(address, snapshot_year) {
-  response <- request(address) |>
-    req_timeout(120) |>
-    req_retry(max_tries = 3) |>
-    req_perform()
-
-  page <- resp_body_html(response)
-  imdb_table <- html_table(html_element(page, "table"))
-  rank_title_year <- str_match(
-    imdb_table$`Rank & Title`,
-    "^\\s*(\\d+)\\.\\s*(.*?)\\s*\\((\\d{4})\\)"
-  )
-  vote_counts <- html_attr(html_elements(page, "[title]"), "title") |>
-    str_subset("based on") |>
-    str_extract("(?<=based on )[0-9,]+") |>
-    str_remove_all(",") |>
-    as.numeric()
-
-  tibble(
-    snap_year = snapshot_year,
-    rank = as.integer(rank_title_year[, 2]),
-    title = rank_title_year[, 3],
-    year = as.integer(rank_title_year[, 4]),
-    rating = as.numeric(imdb_table$`IMDb Rating`),
-    number = vote_counts
-  )
-}
-
-imdb_snapshots <- map2(urls, years, scrape_imdb) |>
-  list_rbind()
-```
-
+#
+#
+#
+#
+#
