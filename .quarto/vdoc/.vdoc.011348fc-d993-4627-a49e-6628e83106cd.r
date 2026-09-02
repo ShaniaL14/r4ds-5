@@ -1,11 +1,11 @@
----
-title: "Wildfires and Movies"
-author: "GitHub Copilot"
-execute:
-  echo: false
----
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
+#
 #| message: false
 
 library(tidyverse)
@@ -14,39 +14,39 @@ library(leaflet)
 library(rvest)
 library(httr2)
 library(jsonlite)
-```
-
-```{r}
+#
+#
+#
 raw <- read_json("data/wildfires.geojson")
 print(length(raw$features))
-```
-
-```{r}
+#
+#
+#
 fire1 <- raw$features[[1]]
 names(fire1)
-```
-
-```{r}
+#
+#
+#
 first_pair <- fire1$geometry$coordinates[[1]][[1]]
 first_pair
-```
-
-```{r}
+#
+#
+#
 features <- tibble(features = raw$features)
 print(features)
-```
-
-```{r}
+#
+#
+#
 features <- features |> unnest_wider(features)
 print(features)
-```
-
-```{r}
+#
+#
+#
 features <- features |> unnest_wider(properties)
 print(features)
-```
-
-```{r}
+#
+#
+#
 #| cache: true
 
 fires <- features |>
@@ -56,9 +56,9 @@ fires <- features |>
     gis_acres = as.numeric(gis_acres),
     fire_year = as.integer(fire_year)
   )
-```
-
-```{r}
+#
+#
+#
 fires |>
   group_by(state) |>
   summarise(total_acres = sum(gis_acres, na.rm = TRUE)) |>
@@ -73,9 +73,9 @@ fires |>
     y = "Total acres burned",
     caption = "Source: wildfire records in fires."
   )
-```
-
-```{r}
+#
+#
+#
 big_fires <- fires |>
   filter(gis_acres >= 100000) |>
   mutate(
@@ -88,58 +88,9 @@ big_fires <- fires |>
       \(coordinates) mean(map_dbl(purrr::flatten(coordinates), \(pair) pair[[2]]))
     )
   )
-```
-
-```{r}
-big_fires |>
-  count(agency) |>
-  ggplot(aes(x = agency, y = n)) +
-  geom_col() +
-  labs(
-    title = "Number of Big Fires by Managing Agency",
-    x = "Managing agency",
-    y = "Number of fires"
-  )
-```
-
-```{r}
-top_fires <- big_fires |>
-  arrange(desc(gis_acres)) |>
-  slice_head(n = 10) |>
-  mutate(
-    polygon_lng = map(geometry_coordinates, \(coordinates) {
-      map_dbl(coordinates[[1]], \(pair) pair[[1]])
-    }),
-    polygon_lat = map(geometry_coordinates, \(coordinates) {
-      map_dbl(coordinates[[1]], \(pair) pair[[2]])
-    })
-  )
-
-top_fires_sf <- top_fires |>
-  mutate(
-    geometry = map(
-      geometry_coordinates,
-      \(coordinates) sf::st_polygon(list(
-        do.call(rbind, purrr::map(coordinates[[1]], unlist))
-      ))
-    )
-  ) |>
-  sf::st_as_sf(sf_column_name = "geometry", crs = 4326)
-
-leaflet(top_fires_sf) |>
-  addTiles() |>
-  addPolygons(
-    popup = ~paste0(
-      "<strong>", incident, "</strong><br>",
-      "Year: ", fire_year, "<br>",
-      "Acres: ", format(gis_acres, big.mark = ",")
-    )
-  ) |>
-  fitBounds(
-    lng1 = min(unlist(top_fires$polygon_lng)),
-    lat1 = min(unlist(top_fires$polygon_lat)),
-    lng2 = max(unlist(top_fires$polygon_lng)),
-    lat2 = max(unlist(top_fires$polygon_lat))
-  )
-```
-
+print(big_fires)
+#
+#
+#
+#
+#
